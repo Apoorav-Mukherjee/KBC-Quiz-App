@@ -1,0 +1,79 @@
+<!-- templates/auth/register.html -->
+{% extends 'base.html' %}
+{% block title %}Register – Quiz Master{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="kbc-card p-4 p-md-5 rounded-4 mt-3">
+
+                <div class="text-center mb-4">
+                    <i class="bi bi-person-plus-fill text-warning display-5"></i>
+                    <h3 class="text-white mt-2 fw-bold">Create Account</h3>
+                    <p class="text-muted">Join Quiz Master today</p>
+                </div>
+
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Username -->
+                    <div class="mb-3">
+                        <label class="form-label text-light">Username</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.username.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label class="form-label text-light">Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.email.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-3">
+                        <label class="form-label text-light">Password</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.password1.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text text-muted small">{{ form.password1.help_text }}</div>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="mb-4">
+                        <label class="form-label text-light">Confirm Password</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.password2.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-warning w-100 fw-bold py-2">
+                        <i class="bi bi-person-check-fill me-2"></i>Register
+                    </button>
+                </form>
+
+                <p class="text-center text-muted mt-4 mb-0">
+                    Already have an account?
+                    <a href="{% url 'login' %}" class="text-warning">Login here</a>
+                </p>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

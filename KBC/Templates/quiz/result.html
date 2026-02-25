@@ -1,0 +1,115 @@
+<!-- templates/quiz/result.html -->
+{% extends 'base.html' %}
+{% block title %}Result – Quiz Master{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="kbc-card rounded-4 p-5 text-center mt-3">
+
+                {% if session.status == 'won' %}
+                    <!-- WIN -->
+                    <div class="mb-4">
+                        <i class="bi bi-trophy-fill text-warning" style="font-size:5rem;"></i>
+                        <h2 class="text-warning fw-bold mt-3">
+                            Congratulations!
+                        </h2>
+                        <p class="text-light fs-5">
+                            You answered all 15 questions correctly!
+                        </p>
+                    </div>
+                    <div class="prize-display mb-4">
+                        <p class="text-muted mb-1">You won</p>
+                        <h1 class="text-warning fw-bold display-4">
+                            ₹{{ session.score|floatformat:0 }}
+                        </h1>
+                    </div>
+
+                {% elif session.status == 'lost' %}
+                    <!-- LOSS -->
+                    <div class="mb-4">
+                        <i class="bi bi-x-circle-fill text-danger" style="font-size:5rem;"></i>
+                        <h2 class="text-danger fw-bold mt-3">
+                            Wrong Answer!
+                        </h2>
+                        <p class="text-light fs-5">
+                            You were eliminated at Level {{ session.current_level }}.
+                        </p>
+                    </div>
+                    <div class="prize-display mb-4">
+                        <p class="text-muted mb-1">You take home</p>
+                        <h1 class="text-warning fw-bold display-4">
+                            ₹{{ session.score|floatformat:0 }}
+                        </h1>
+                        <small class="text-muted">(Safe Haven Amount)</small>
+                    </div>
+
+                {% else %}
+                    <!-- QUIT -->
+                    <div class="mb-4">
+                        <i class="bi bi-door-open-fill text-secondary" style="font-size:5rem;"></i>
+                        <h2 class="text-light fw-bold mt-3">
+                            You Quit the Game
+                        </h2>
+                        <p class="text-light fs-5">
+                            You left at Level {{ session.current_level }}.
+                        </p>
+                    </div>
+                    <div class="prize-display mb-4">
+                        <p class="text-muted mb-1">You take home</p>
+                        <h1 class="text-warning fw-bold display-4">
+                            ₹{{ session.score|floatformat:0 }}
+                        </h1>
+                    </div>
+                {% endif %}
+
+                <!-- Game Summary -->
+                <div class="row g-3 mb-4">
+                    <div class="col-4">
+                        <div class="summary-box p-3 rounded-3">
+                            <small class="text-muted">Level Reached</small>
+                            <h4 class="text-white mb-0">{{ session.current_level }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="summary-box p-3 rounded-3">
+                            <small class="text-muted">Duration</small>
+                            <h4 class="text-white mb-0">
+                                {% if session.ended_at and session.started_at %}
+                                    {{ session.ended_at|timesince:session.started_at }}
+                                {% else %}—{% endif %}
+                            </h4>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="summary-box p-3 rounded-3">
+                            <small class="text-muted">Lifelines Left</small>
+                            <h4 class="text-white mb-0">
+                                {{ session.lifeline_5050|add:session.lifeline_skip|add:session.lifeline_poll }}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="{% url 'start_game' %}"
+                       class="btn btn-warning btn-lg fw-bold px-4">
+                        <i class="bi bi-arrow-repeat me-2"></i>Play Again
+                    </a>
+                    <a href="{% url 'leaderboard' %}"
+                       class="btn btn-outline-warning btn-lg px-4">
+                        <i class="bi bi-bar-chart-fill me-2"></i>Leaderboard
+                    </a>
+                    <a href="{% url 'dashboard' %}"
+                       class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

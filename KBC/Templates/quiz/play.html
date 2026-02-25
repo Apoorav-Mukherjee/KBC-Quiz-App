@@ -1,0 +1,173 @@
+<!-- templates/quiz/play.html -->
+{% extends 'base.html' %}
+{% block title %}Level {{ session.current_level }} – Quiz Master{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3">
+    <div class="row g-3">
+
+        <!-- ─── LEFT: Prize Ladder ─── -->
+        <div class="col-lg-2 d-none d-lg-block">
+            <div class="kbc-card rounded-4 p-3 sticky-top" style="top:80px;">
+                <h6 class="text-warning text-center mb-3">
+                    <i class="bi bi-ladder me-1"></i>Prize Ladder
+                </h6>
+                <div class="prize-ladder-list">
+                    {% for lvl, prize in prize_ladder.items %}
+                        <div class="prize-ladder-row
+                            {% if lvl == session.current_level %}active-level{% endif %}
+                            {% if lvl == 5 or lvl == 10 or lvl == 15 %}safe-level{% endif %}
+                            py-1 px-2 rounded mb-1 d-flex justify-content-between">
+                            <small class="text-muted">{{ lvl }}</small>
+                            <small class="{% if lvl == session.current_level %}text-white fw-bold{% else %}text-warning{% endif %}">
+                                ₹{{ prize|floatformat:0 }}
+                            </small>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── CENTER: Question Area ─── -->
+        <div class="col-lg-8">
+
+            <!-- Top bar: Level + Timer -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                        Level {{ session.current_level }} / 15
+                    </span>
+                    <span class="ms-2 text-warning fw-bold">
+                        ₹{{ current_prize|floatformat:0 }}
+                    </span>
+                </div>
+                <!-- Timer -->
+                <div class="timer-box text-center">
+                    <div id="timer-circle">
+                        <span id="timer-count">30</span>
+                    </div>
+                </div>
+                <!-- Quit Button -->
+                <form method="POST" action="{% url 'quit_game' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                        onclick="return confirm('Quit and take your safe haven amount?')">
+                        <i class="bi bi-door-open-fill me-1"></i>Quit
+                    </button>
+                </form>
+            </div>
+
+            <!-- Question Card -->
+            <div class="kbc-card rounded-4 p-4 mb-3 text-center question-card">
+                <p class="text-white fs-5 fw-semibold mb-0">
+                    {{ question.text }}
+                </p>
+            </div>
+
+            <!-- Answer Options -->
+            <form method="POST" action="{% url 'answer' %}" id="answer-form">
+                {% csrf_token %}
+                <div class="row g-3">
+
+                    {% for option, label in option_labels.items %}
+                        {% if option not in eliminated %}
+                            <div class="col-md-6">
+                                <button type="submit"
+                                    name="answer"
+                                    value="{{ option }}"
+                                    class="option-btn btn w-100 py-3 text-start rounded-3"
+                                    id="btn-{{ option }}">
+                                    <span class="option-badge me-2">{{ option }}</span>
+                                    {% if option == 'A' %}{{ question.option_a }}
+                                    {% elif option == 'B' %}{{ question.option_b }}
+                                    {% elif option == 'C' %}{{ question.option_c }}
+                                    {% elif option == 'D' %}{{ question.option_d }}
+                                    {% endif %}
+                                </button>
+                            </div>
+                        {% else %}
+                            <!-- Eliminated by 50-50 -->
+                            <div class="col-md-6">
+                                <button class="option-btn btn w-100 py-3 text-start rounded-3 eliminated"
+                                    disabled>
+                                    <span class="option-badge me-2">{{ option }}</span>
+                                    <span class="text-muted">—</span>
+                                </button>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                </div>
+            </form>
+
+            <!-- Audience Poll Results (shown if used) -->
+            {% if audience_poll %}
+            <div class="kbc-card rounded-4 p-4 mt-3">
+                <h6 class="text-warning mb-3">
+                    <i class="bi bi-people-fill me-2"></i>Audience Poll Results
+                </h6>
+                {% for opt, pct in audience_poll.items %}
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="text-light">{{ opt }}</small>
+                        <small class="text-warning">{{ pct }}%</small>
+                    </div>
+                    <div class="progress" style="height:10px;">
+                        <div class="progress-bar bg-warning"
+                             style="width:{{pct}}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- ─── RIGHT: Lifelines ─── -->
+        <div class="col-lg-2">
+            <div class="kbc-card rounded-4 p-3 sticky-top" style="top:80px;">
+                <h6 class="text-warning text-center mb-3">
+                    <i class="bi bi-life-preserver me-1"></i>Lifelines
+                </h6>
+
+                <!-- 50-50 -->
+                <form method="POST" action="{% url 'lifeline' 'fifty_fifty' %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                        class="lifeline-btn btn w-100 mb-2 {% if not session.lifeline_5050 %}lifeline-used{% endif %}"
+                        {% if not session.lifeline_5050 %}disabled{% endif %}>
+                        <i class="bi bi-slash-circle me-1"></i>50 : 50
+                    </button>
+                </form>
+
+                <!-- Skip -->
+                <form method="POST" action="{% url 'lifeline' 'skip' %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                        class="lifeline-btn btn w-100 mb-2 {% if not session.lifeline_skip %}lifeline-used{% endif %}"
+                        {% if not session.lifeline_skip %}disabled{% endif %}>
+                        <i class="bi bi-skip-forward-fill me-1"></i>Skip
+                    </button>
+                </form>
+
+                <!-- Audience Poll -->
+                <form method="POST" action="{% url 'lifeline' 'audience_poll' %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                        class="lifeline-btn btn w-100 {% if not session.lifeline_poll %}lifeline-used{% endif %}"
+                        {% if not session.lifeline_poll %}disabled{% endif %}>
+                        <i class="bi bi-bar-chart-fill me-1"></i>Poll
+                    </button>
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% load static %}
+<script src="{% static 'js/quiz.js' %}"></script>
+{% endblock %}
